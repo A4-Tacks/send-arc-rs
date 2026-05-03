@@ -1,4 +1,5 @@
 #![no_std]
+#![doc = include_str!("../README.md")]
 
 extern crate alloc;
 
@@ -9,6 +10,8 @@ mod own_arc;
 
 use crate::own_arc::OwnArc;
 
+/// # Panics
+/// When there is an instance of `SendArc`, the drop will panic
 #[derive(Debug)]
 pub struct Arena<T: ?Sized> {
     own_datas: Vec<OwnArc<T>>,
@@ -47,6 +50,7 @@ impl<T> Arena<T> {
     }
 }
 
+/// Create from [`Arena::alloc`]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 #[repr(transparent)]
 pub struct SendArc<T: ?Sized> {
@@ -120,7 +124,6 @@ mod tests {
         }
     }
 
-    fn needs_sync(_: impl Sync) {}
     fn needs_send(x: impl Send) {
         std::thread::scope(move |scope| {
             scope.spawn(move || {
@@ -131,6 +134,7 @@ mod tests {
     }
 
     fn _check_ref_sync_projection(value: impl Sync) {
+        fn needs_sync(_: impl Sync) {}
         needs_sync(&value);
     }
 
