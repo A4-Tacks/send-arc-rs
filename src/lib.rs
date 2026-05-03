@@ -54,9 +54,34 @@ impl<T> Arena<T> {
         self.own_datas.push(OwnArc(data.clone()));
         SendArc { data }
     }
+
+    /// Create from an existing unique [`Arc`]
+    ///
+    /// # Panics
+    ///
+    /// Panics if `data.strong_count() != 1`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use send_arc::Arena;
+    ///
+    /// let mut arena = Arena::new();
+    /// let data = std::sync::Arc::new(2);
+    /// let data = arena.tracking(data);
+    /// assert_eq!(**data, 2);
+    /// ```
+    #[track_caller]
+    pub fn tracking(&mut self, data: Arc<T>) -> SendArc<T> {
+        assert_eq!(Arc::strong_count(&data), 1);
+        let own_arc = OwnArc(data.clone());
+        self.garbage_collection();
+        self.own_datas.push(own_arc);
+        SendArc { data }
+    }
 }
 
-/// Create from [`Arena::alloc`]
+/// Create from [`Arena::alloc`] or [`Arena::tracking`]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct SendArc<T: ?Sized> {
