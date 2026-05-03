@@ -57,7 +57,7 @@ impl<T> Arena<T> {
 }
 
 /// Create from [`Arena::alloc`]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct SendArc<T: ?Sized> {
     data: Arc<T>,
