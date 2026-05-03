@@ -31,6 +31,12 @@ impl<T: ?Sized> Drop for Arena<T> {
     }
 }
 
+impl<T: ?Sized> Default for Arena<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: ?Sized> Arena<T> {
     pub fn new() -> Self {
         Self { own_datas: Vec::new() }
