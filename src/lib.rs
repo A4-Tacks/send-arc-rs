@@ -69,7 +69,7 @@ impl<T> Arena<T> {
     /// let mut arena = Arena::new();
     /// let data = std::sync::Arc::new(2);
     /// let data = arena.tracking(data);
-    /// assert_eq!(**data, 2);
+    /// assert_eq!(*data, 2);
     /// ```
     #[track_caller]
     pub fn tracking(&mut self, data: Arc<T>) -> SendArc<T> {
@@ -95,14 +95,29 @@ impl<T: ?Sized> Clone for SendArc<T> {
 }
 
 impl<T: ?Sized> ops::Deref for SendArc<T> {
-    type Target = Arc<T>;
+    type Target = T;
 
     fn deref(&self) -> &Self::Target {
         &self.data
     }
 }
 
-// NOTE: Do not implement DerefMut, otherwise you can swap a normal Arc
+impl<T: ?Sized> SendArc<T> {
+    // NOTE: Do not implement mutable version, otherwise you can swap a normal Arc
+    pub fn inner(this: &Self) -> &Arc<T> {
+        &this.data
+    }
+
+    pub fn into_inner(this: Self) -> Arc<T> {
+        this.data
+    }
+}
+
+impl<T: ?Sized> From<SendArc<T>> for Arc<T> {
+    fn from(value: SendArc<T>) -> Self {
+        SendArc::into_inner(value)
+    }
+}
 
 impl<T: ?Sized + fmt::Display> fmt::Display for SendArc<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
