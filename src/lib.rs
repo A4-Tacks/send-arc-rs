@@ -98,6 +98,7 @@ impl<T: ?Sized + fmt::Pointer> fmt::Pointer for SendArc<T> {
 }
 
 // SAFETY: SendArc always drop in original thread
+#[allow(clippy::non_send_fields_in_send_ty)]
 unsafe impl<T: ?Sized + Sync> Send for SendArc<T> {}
 
 // SAFETY: like reference Sync implement

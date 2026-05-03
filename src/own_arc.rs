@@ -1,8 +1,8 @@
 use alloc::sync::Arc;
 
-/// Compare strong_count ordered arc
+/// Compare `strong_count` ordered arc
 #[derive(Debug)]
-pub(crate) struct OwnArc<T: ?Sized>(pub(crate) Arc<T>);
+pub struct OwnArc<T: ?Sized>(pub(crate) Arc<T>);
 
 impl<T: ?Sized> OwnArc<T> {
     pub(crate) fn strong_count(&self) -> usize {
