@@ -59,7 +59,7 @@ impl<T> Arena<T> {
     ///
     /// # Panics
     ///
-    /// Panics if `data.strong_count() != 1`.
+    /// Panics if exists other strong or weak references.
     ///
     /// # Examples
     ///
@@ -72,8 +72,13 @@ impl<T> Arena<T> {
     /// assert_eq!(*data, 2);
     /// ```
     #[track_caller]
-    pub fn tracking(&mut self, data: Arc<T>) -> SendArc<T> {
-        assert_eq!(Arc::strong_count(&data), 1);
+    pub fn tracking(&mut self, mut data: Arc<T>) -> SendArc<T> {
+        assert!(
+            Arc::get_mut(&mut data).is_some(),
+            "Arc is not unique, {} strongs, {} weaks",
+            Arc::strong_count(&data),
+            Arc::weak_count(&data),
+        );
         let own_arc = OwnArc(data.clone());
         self.garbage_collection();
         self.own_datas.push(own_arc);
@@ -193,5 +198,23 @@ mod tests {
         needs_send(a);
         let c = b.clone();
         needs_send(c);
+    }
+
+    #[test]
+    #[should_panic = "is not unique, 2 strongs, 0 weaks"]
+    fn tracking_shared_panic() {
+        let mut arena = Arena::new();
+        let data = Arc::new(Ty::new());
+        let _other = data.clone();
+        let _a = arena.tracking(data);
+    }
+
+    #[test]
+    #[should_panic = "is not unique, 1 strongs, 1 weaks"]
+    fn tracking_weak_references_panic() {
+        let mut arena = Arena::new();
+        let data = Arc::new(Ty::new());
+        let _other_weak = Arc::downgrade(&data);
+        let _a = arena.tracking(data);
     }
 }
