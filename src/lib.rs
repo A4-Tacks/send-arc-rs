@@ -10,6 +10,8 @@ mod own_arc;
 
 use crate::own_arc::OwnArc;
 
+/// Create some [`SendArc`], which must be dropped after [`SendArc`]
+///
 /// # Panics
 /// When there is an instance of `SendArc`, the drop will panic
 #[derive(Debug)]
@@ -42,11 +44,12 @@ impl<T: ?Sized> Arena<T> {
         Self { own_datas: Vec::new() }
     }
 
+    /// Drop [`SendArc`]s that are only referenced by [`Arena`]
     pub fn garbage_collection(&mut self) {
         self.own_datas.retain(|it| !it.can_drop());
     }
 
-    /// Create from an existing unique [`Arc`]
+    /// Create from an existing unique [`Arc`], and run garbage collection
     ///
     /// # Panics
     ///
@@ -78,6 +81,7 @@ impl<T: ?Sized> Arena<T> {
 }
 
 impl<T> Arena<T> {
+    /// Create from value, and run garbage collection
     pub fn alloc(&mut self, data: T) -> SendArc<T> {
         self.garbage_collection();
         let data = Arc::new(data);
