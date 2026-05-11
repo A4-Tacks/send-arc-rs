@@ -9,3 +9,9 @@ jobs:
       - run: cargo check
       - run: cargo test --no-fail-fast
       - run: cargo clippy -- --deny warnings
+  miri:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup component add --toolchain nightly miri
+      - run: cargo +nightly miri test
