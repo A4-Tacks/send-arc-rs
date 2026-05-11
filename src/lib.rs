@@ -46,7 +46,14 @@ impl<T: ?Sized> Arena<T> {
 
     /// Drop [`SendArc`]s that are only referenced by [`Arena`]
     pub fn garbage_collection(&mut self) {
-        self.own_datas.retain(|it| !it.can_drop());
+        let mut i = 0;
+        while let Some(slot) = self.own_datas.get(i) {
+            if slot.can_drop() {
+                self.own_datas.swap_remove(i);
+            } else {
+                i += 1;
+            }
+        }
     }
 
     /// Create from an existing unique [`Arc`], and run garbage collection
