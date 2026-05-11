@@ -45,15 +45,6 @@ impl<T: ?Sized> Arena<T> {
     pub fn garbage_collection(&mut self) {
         self.own_datas.retain(|it| !it.can_drop());
     }
-}
-
-impl<T> Arena<T> {
-    pub fn alloc(&mut self, data: T) -> SendArc<T> {
-        self.garbage_collection();
-        let data = Arc::new(data);
-        self.own_datas.push(OwnArc(data.clone()));
-        SendArc { data }
-    }
 
     /// Create from an existing unique [`Arc`]
     ///
@@ -82,6 +73,15 @@ impl<T> Arena<T> {
         let own_arc = OwnArc(data.clone());
         self.garbage_collection();
         self.own_datas.push(own_arc);
+        SendArc { data }
+    }
+}
+
+impl<T> Arena<T> {
+    pub fn alloc(&mut self, data: T) -> SendArc<T> {
+        self.garbage_collection();
+        let data = Arc::new(data);
+        self.own_datas.push(OwnArc(data.clone()));
         SendArc { data }
     }
 }
